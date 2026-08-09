@@ -63,6 +63,8 @@ abstract final class SettingBoxKey {
       enableHotKey = 'enableHotKey',
       enableSearchRcmd = 'enableSearchRcmd',
       enableQuickFav = 'enableQuickFav',
+      enableFavShortcutRow = 'enableFavShortcutRow',
+      favShortcutList = 'favShortcutList',
       enableWordRe = 'enableWordRe',
       enableSearchWord = 'enableSearchWord',
       enableSystemProxy = 'enableSystemProxy',
@@ -153,7 +155,9 @@ abstract final class SettingBoxKey {
       floatingNavBar = 'floatingNavBar',
       removeSafeArea = 'removeSafeArea',
       angleDegrees = 'angleDegrees',
-      liveStream = 'liveStream';
+      liveStream = 'liveStream',
+      downloadServerUrl = 'downloadServerUrl',
+      enableDownloadServer = 'enableDownloadServer';
 
   static const String minimizeOnExit = 'minimizeOnExit',
       windowSize = 'windowSize',

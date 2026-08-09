@@ -41,6 +41,7 @@ import 'package:PiliPlus/utils/request_utils.dart';
 import 'package:PiliPlus/utils/share_utils.dart';
 import 'package:PiliPlus/utils/storage_pref.dart';
 import 'package:PiliPlus/utils/utils.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -62,6 +63,7 @@ class UgcIntroController extends CommonIntroController with ReloadMixin {
   late final showArgueMsg = Pref.showArgueMsg;
   late final enableAi = Pref.enableAi;
   late final horizontalMemberPage = Pref.horizontalMemberPage;
+  late final enableDownloadServer = Pref.enableDownloadServer;
 
   AiConclusionResult? aiConclusionResult;
 
@@ -70,6 +72,7 @@ class UgcIntroController extends CommonIntroController with ReloadMixin {
   @override
   void onInit() {
     super.onInit();
+    loadFavShortcutList();
     final alwaysExpandIntroPanel = Pref.alwaysExpandIntroPanel;
     expand = RxBool(alwaysExpandIntroPanel);
     if (!alwaysExpandIntroPanel && Pref.expandIntroPanelH) {
@@ -392,6 +395,30 @@ class UgcIntroController extends CommonIntroController with ReloadMixin {
         ],
       ),
     );
+  }
+
+  // 下载视频
+  Future<void> actionDownloadVideo() async {
+    feedBack();
+    final url = Pref.downloadServerUrl;
+    if (url.isEmpty) {
+      SmartDialog.showToast('请先设置下载服务器地址');
+      return;
+    }
+    try {
+      final res = await Request().post(
+        url,
+        data: {'bid': bvid},
+        options: Options(contentType: Headers.jsonContentType),
+      );
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        SmartDialog.showToast('下载请求已发送: ${res.statusCode}');
+      } else {
+        SmartDialog.showToast('下载请求失败: ${res.statusCode}');
+      }
+    } catch (e) {
+      SmartDialog.showToast('下载请求出错: $e');
+    }
   }
 
   // 查询关注状态

@@ -13,6 +13,7 @@ import 'package:PiliPlus/common/widgets/selection_text.dart';
 import 'package:PiliPlus/common/widgets/stat/stat.dart';
 import 'package:PiliPlus/common/widgets/translucent_column.dart';
 import 'package:PiliPlus/http/sponsor_block.dart';
+import 'package:PiliPlus/models/common/quick_fav_item.dart';
 import 'package:PiliPlus/models_new/video/video_ai_conclusion/model_result.dart';
 import 'package:PiliPlus/models_new/video/video_detail/data.dart';
 import 'package:PiliPlus/models_new/video/video_detail/desc_v2.dart';
@@ -40,6 +41,7 @@ import 'package:PiliPlus/utils/num_utils.dart';
 import 'package:PiliPlus/utils/page_utils.dart';
 import 'package:PiliPlus/utils/platform_utils.dart';
 import 'package:PiliPlus/utils/request_utils.dart';
+import 'package:PiliPlus/utils/storage_pref.dart';
 import 'package:PiliPlus/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -179,6 +181,8 @@ class _UgcIntroPanelState extends State<UgcIntroPanel> {
                       introController,
                       videoDetail.stat,
                     ),
+                    if (Pref.enableFavShortcutRow)
+                      favShortcutRow(context, introController),
                   ],
                   // 合集
                   if (!isLoading &&
@@ -544,6 +548,68 @@ class _UgcIntroPanelState extends State<UgcIntroPanel> {
     );
   }
 
+  /// 快捷收藏夹栏：下载 + 添加 + 已配置的收藏夹快捷开关
+  Widget favShortcutRow(
+    BuildContext context,
+    UgcIntroController introController,
+  ) {
+    return SizedBox(
+      height: 48,
+      child: Obx(
+        () => Row(
+          crossAxisAlignment: .start,
+          children: [
+            if (introController.enableDownloadServer)
+              ActionItem(
+                icon: const Icon(FontAwesomeIcons.download),
+                semanticsLabel: '下载',
+                text: '下载',
+                onTap: introController.actionDownloadVideo,
+              ),
+            ActionItem(
+              icon: const Icon(Icons.add),
+              semanticsLabel: '添加快捷收藏夹',
+              text: '添加',
+              onTap: () => introController.showFavShortcutSelector(context),
+            ),
+            for (final item in introController.favShortcutList)
+              ActionItem(
+                icon: const Icon(FontAwesomeIcons.star),
+                selectIcon: const Icon(FontAwesomeIcons.solidStar),
+                selectStatus:
+                    introController.favIds.value?.contains(item.id) == true,
+                semanticsLabel: item.title,
+                text: item.title,
+                onTap: () => introController.handleAction(
+                  () => introController.toggleFavShortcut(item.id),
+                ),
+                onLongPress: () => _showRemoveFavShortcutDialog(
+                  context,
+                  introController,
+                  item,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showRemoveFavShortcutDialog(
+    BuildContext context,
+    UgcIntroController introController,
+    QuickFavItem item,
+  ) async {
+    final confirmed = await showConfirmDialog(
+      context: context,
+      title: const Text('移除快捷收藏夹'),
+      content: Text('确认移除「${item.title}」快捷收藏按钮？'),
+    );
+    if (confirmed) {
+      introController.removeFavShortcut(item.id);
+    }
+  }
+
   static final RegExp urlRegExp = RegExp(
     Constants.urlRegex.pattern + r'|av\d+|bv[a-z\d]{10}|(?:\d+[:：])?\d+[:：]\d+',
     caseSensitive: false,
@@ -706,6 +772,17 @@ class _UgcIntroPanelState extends State<UgcIntroPanel> {
     VideoDetailData videoDetail,
   ) {
     final mid = videoDetail.owner?.mid;
+    void onOwnerTap() {
+      if (mid != null) {
+        feedBack();
+        if (!isPortrait && introController.horizontalMemberPage) {
+          widget.onShowMemberPage(mid);
+        } else {
+          Get.toNamed('/member?mid=$mid&from_view_aid=${videoDetailCtr.aid}');
+        }
+      }
+    }
+
     return Row(
       children: [
         if (videoDetail.staff case final staff? when staff.isNotEmpty)
@@ -723,37 +800,53 @@ class _UgcIntroPanelState extends State<UgcIntroPanel> {
             ),
           )
         else ...[
-          Expanded(
-            child: Align(
-              alignment: .centerLeft,
-              child: _buildAvatar(
-                () {
-                  if (mid != null) {
-                    feedBack();
-                    if (!isPortrait && introController.horizontalMemberPage) {
-                      widget.onShowMemberPage(mid);
-                    } else {
-                      Get.toNamed(
-                        '/member?mid=$mid&from_view_aid=${videoDetailCtr.aid}',
-                      );
-                    }
-                  }
-                },
+          // 横屏且展示快捷收藏夹栏时不占满剩余空间，为快捷收藏夹栏留出宽度
+          if (isHorizontal && Pref.enableFavShortcutRow)
+            _buildAvatar(onOwnerTap)
+          else
+            Expanded(
+              child: Align(
+                alignment: .centerLeft,
+                child: _buildAvatar(onOwnerTap),
               ),
             ),
-          ),
+          if (isHorizontal && Pref.enableFavShortcutRow)
+            const SizedBox(width: 10),
           followButton(context),
         ],
         if (isHorizontal) ...[
           const SizedBox(width: 10),
-          Expanded(
-            child: actionGrid(
-              context,
-              isLoading,
-              introController,
-              videoDetail.stat,
+          if (Pref.enableFavShortcutRow)
+            Expanded(
+              child: Row(
+                crossAxisAlignment: .start,
+                children: [
+                  Flexible(
+                    flex: 6,
+                    child: actionGrid(
+                      context,
+                      isLoading,
+                      introController,
+                      videoDetail.stat,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    flex: 2 + introController.favShortcutList.length,
+                    child: favShortcutRow(context, introController),
+                  ),
+                ],
+              ),
+            )
+          else
+            Expanded(
+              child: actionGrid(
+                context,
+                isLoading,
+                introController,
+                videoDetail.stat,
+              ),
             ),
-          ),
         ],
       ],
     );

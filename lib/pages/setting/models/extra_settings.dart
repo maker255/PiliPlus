@@ -499,6 +499,13 @@ List<SettingsModel> get extraSettings => [
     onTap: _showFavDialog,
     defaultVal: false,
   ),
+  const SwitchModel(
+    title: '显示快捷收藏夹栏',
+    subtitle: '在收藏按钮下方显示常用收藏夹快捷入口',
+    leading: Icon(Icons.bookmark_border_outlined),
+    setKey: SettingBoxKey.enableFavShortcutRow,
+    defaultVal: false,
+  ),
   SwitchModel(
     title: '评论区搜索关键词',
     subtitle: '展示评论区搜索关键词',
@@ -592,6 +599,18 @@ List<SettingsModel> get extraSettings => [
       onTap: _showProxyDialog,
     ),
   ),
+  const SplitModel(
+    normalModel: NormalModel.split(
+      title: '下载服务器',
+      subtitle: '设置下载服务器地址',
+      leading: Icon(Icons.download_outlined),
+    ),
+    switchModel: SwitchModel.split(
+      defaultVal: false,
+      setKey: SettingBoxKey.enableDownloadServer,
+      onTap: _showDownloadServerUrlDialog,
+    ),
+  ),
   NormalModel(
     title: '最大缓存大小',
     getSubtitle: () =>
@@ -612,6 +631,85 @@ List<SettingsModel> get extraSettings => [
     },
   ),
 ];
+
+void _showCacheDialog(BuildContext context, VoidCallback setState) {
+  String maxCacheSize = (Pref.maxCacheSize / (1 << 30)).toStringAsFixed(2);
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('最大缓存大小'),
+      content: TextFormField(
+        autofocus: true,
+        initialValue: maxCacheSize,
+        keyboardType: TextInputType.number,
+        onChanged: (value) => maxCacheSize = value,
+        inputFormatters: FilteringText.decimal,
+        decoration: const InputDecoration(suffixText: 'GB'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: Get.back,
+          child: Text(
+            '取消',
+            style: TextStyle(color: ColorScheme.of(context).outline),
+          ),
+        ),
+        TextButton(
+          onPressed: () async {
+            try {
+              final val = maxCacheSize.isEmpty
+                  ? 0
+                  : (double.parse(maxCacheSize) * (1 << 30)).round();
+              Get.back();
+              await GStorage.setting.put(SettingBoxKey.maxCacheSize, val);
+              setState();
+            } catch (e) {
+              SmartDialog.showToast(e.toString());
+            }
+          },
+          child: const Text('确定'),
+        ),
+      ],
+    ),
+  );
+}
+
+void _showDownloadServerUrlDialog(BuildContext context) {
+  String downloadServerUrl = Pref.downloadServerUrl;
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('下载服务器地址'),
+      content: TextFormField(
+        autofocus: true,
+        initialValue: downloadServerUrl,
+        onChanged: (value) => downloadServerUrl = value,
+        decoration: const InputDecoration(
+          hintText: 'http://localhost:9889/task',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: Get.back,
+          child: Text(
+            '取消',
+            style: TextStyle(color: ColorScheme.of(context).outline),
+          ),
+        ),
+        TextButton(
+          onPressed: () async {
+            Get.back();
+            await GStorage.setting.put(
+              SettingBoxKey.downloadServerUrl,
+              downloadServerUrl,
+            );
+          },
+          child: const Text('确定'),
+        ),
+      ],
+    ),
+  );
+}
 
 Future<void> audioNormalization(
   BuildContext context,
@@ -1172,48 +1270,6 @@ void _showProxyDialog(BuildContext context) {
             );
           },
           child: const Text('确认'),
-        ),
-      ],
-    ),
-  );
-}
-
-void _showCacheDialog(BuildContext context, VoidCallback setState) {
-  String valueStr = '';
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('最大缓存大小'),
-      content: TextField(
-        autofocus: true,
-        onChanged: (value) => valueStr = value,
-        keyboardType: TextInputType.number,
-        inputFormatters: FilteringText.decimal,
-        decoration: const InputDecoration(suffixText: 'MB'),
-      ),
-      actions: [
-        TextButton(
-          onPressed: Get.back,
-          child: Text(
-            '取消',
-            style: TextStyle(color: ColorScheme.of(context).outline),
-          ),
-        ),
-        TextButton(
-          onPressed: () async {
-            try {
-              final val = num.parse(valueStr);
-              Get.back();
-              await GStorage.setting.put(
-                SettingBoxKey.maxCacheSize,
-                val * 1024 * 1024,
-              );
-              setState();
-            } catch (e) {
-              SmartDialog.showToast(e.toString());
-            }
-          },
-          child: const Text('确定'),
         ),
       ],
     ),
