@@ -22,6 +22,7 @@ import 'package:PiliPlus/pages/dynamics_repost/view.dart';
 import 'package:PiliPlus/utils/date_utils.dart';
 import 'package:PiliPlus/utils/extension/get_ext.dart';
 import 'package:PiliPlus/utils/extension/num_ext.dart';
+import 'package:PiliPlus/utils/extension/selectable_region_ext.dart';
 import 'package:PiliPlus/utils/grid.dart';
 import 'package:PiliPlus/utils/image_utils.dart';
 import 'package:PiliPlus/utils/num_utils.dart';
@@ -77,6 +78,7 @@ class _ArticlePageState extends CommonDynPageState<ArticlePage> {
       return Padding(
         padding: .symmetric(horizontal: padding),
         child: SelectionArea(
+          contextMenuBuilder: launchMenuBuilder,
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
@@ -110,6 +112,7 @@ class _ArticlePageState extends CommonDynPageState<ArticlePage> {
         Expanded(
           flex: flex,
           child: SelectionArea(
+            contextMenuBuilder: launchMenuBuilder,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [

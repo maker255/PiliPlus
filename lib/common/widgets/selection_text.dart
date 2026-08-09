@@ -1,3 +1,4 @@
+import 'package:PiliPlus/utils/extension/selectable_region_ext.dart';
 import 'package:flutter/material.dart';
 
 class SelectionText extends StatelessWidget {
@@ -27,9 +28,7 @@ class SelectionText extends StatelessWidget {
     BuildContext context,
     SelectableRegionState selectableRegionState,
   ) {
-    return AdaptiveTextSelectionToolbar.selectableRegion(
-      selectableRegionState: selectableRegionState,
-    );
+    return launchMenuBuilder(context, selectableRegionState);
   }
 
   @override

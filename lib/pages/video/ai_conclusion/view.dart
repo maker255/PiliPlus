@@ -3,6 +3,7 @@ import 'package:PiliPlus/models_new/video/video_ai_conclusion/model_result.dart'
 import 'package:PiliPlus/pages/common/slide/common_slide_page.dart';
 import 'package:PiliPlus/pages/video/controller.dart';
 import 'package:PiliPlus/utils/duration_utils.dart';
+import 'package:PiliPlus/utils/extension/selectable_region_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -27,6 +28,7 @@ class AiConclusionPanel extends CommonSlidePage {
     final outline = res.outline;
     final hasOutline = outline != null && outline.isNotEmpty;
     return SelectionArea(
+      contextMenuBuilder: launchMenuBuilder,
       child: CustomScrollView(
         key: key,
         shrinkWrap: !tap,

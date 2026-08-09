@@ -3,6 +3,16 @@ import 'package:PiliPlus/utils/page_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 通用文本选择菜单：在默认项之后插入「站内搜索」/「打开」
+Widget launchMenuBuilder(BuildContext context, SelectableRegionState state) {
+  final buttonItems = state.contextMenuButtonItems;
+  state.addLaunchMenuIfNeeded(buttonItems, index: 3);
+  return AdaptiveTextSelectionToolbar.buttonItems(
+    buttonItems: buttonItems,
+    anchors: state.contextMenuAnchors,
+  );
+}
+
 extension SelectableRegionStateExt on SelectableRegionState {
   static final _schemeRegex = RegExp(r'[\w\-]+://\S');
 
