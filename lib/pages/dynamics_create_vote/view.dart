@@ -2,6 +2,7 @@ import 'dart:io' show File;
 
 import 'package:PiliPlus/common/widgets/button/icon_button.dart';
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
+import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
 import 'package:PiliPlus/common/widgets/time_picker.dart';
 import 'package:PiliPlus/models/dynamics/vote_model.dart';
 import 'package:PiliPlus/pages/dynamics_create_vote/controller.dart';
@@ -53,7 +54,7 @@ class _CreateVotePageState extends State<CreateVotePage> {
       thickness: 1,
       color: theme.colorScheme.outline.withValues(alpha: 0.1),
     );
-    return Scaffold(
+    return SimpleScaffold(
       appBar: AppBar(
         title: Text('${_controller.voteId != null ? '' : '发起'}投票'),
       ),
@@ -90,7 +91,7 @@ class _CreateVotePageState extends State<CreateVotePage> {
               theme,
               key: ValueKey('${_controller.key}desc'),
               initialValue: _controller.desc.value,
-              onChanged: (value) => _controller.desc.value = value,
+              onChanged: _controller.desc.call,
               desc: '投票说明',
               inputFormatters: [LengthLimitingTextInputFormatter(100)],
             ),
@@ -190,10 +191,7 @@ class _CreateVotePageState extends State<CreateVotePage> {
                   child: PopupMenuButton<int>(
                     initialValue: choiceCnt,
                     requestFocus: false,
-                    child: Text(
-                      choiceCnt == 1 ? '单选         ' : '最多选$choiceCnt项',
-                    ),
-                    onSelected: (value) => _controller.choiceCnt.value = value,
+                    onSelected: _controller.choiceCnt.call,
                     itemBuilder: (context) {
                       return choices
                           .map(
@@ -204,6 +202,9 @@ class _CreateVotePageState extends State<CreateVotePage> {
                           )
                           .toList();
                     },
+                    child: Text(
+                      choiceCnt == 1 ? '单选         ' : '最多选$choiceCnt项',
+                    ),
                   ),
                 );
               }),

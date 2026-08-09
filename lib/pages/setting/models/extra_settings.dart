@@ -2,7 +2,9 @@ import 'dart:io';
 import 'dart:math' show max;
 
 import 'package:PiliPlus/common/widgets/custom_icon.dart';
-import 'package:PiliPlus/common/widgets/flutter/refresh_indicator.dart';
+import 'package:PiliPlus/common/widgets/dialog/simple_dialog_option.dart';
+import 'package:PiliPlus/common/widgets/flutter/refresh_indicator.dart'
+    show RefreshIndicator, displacement, refreshDragExtent;
 import 'package:PiliPlus/common/widgets/gesture/horizontal_drag_gesture_recognizer.dart'
     show deviceTouchSlop, touchSlopH;
 import 'package:PiliPlus/common/widgets/image_grid/image_grid_view.dart'
@@ -242,15 +244,10 @@ List<SettingsModel> get extraSettings => [
     leading: const Icon(Icons.pan_tool_alt_outlined),
   ),
   NormalModel(
-    title: '刷新滑动距离',
-    leading: const Icon(Icons.refresh),
-    getSubtitle: () => '当前滑动距离: ${Pref.refreshDragPercentage}x',
-    onTap: _showRefreshDragDialog,
-  ),
-  NormalModel(
     title: '刷新指示器高度',
     leading: const Icon(Icons.height),
-    getSubtitle: () => '当前指示器高度: ${Pref.refreshDisplacement}',
+    getSubtitle: () =>
+        '当前指示器高度: ${Pref.refreshDisplacement}, 刷新滑动距离: $refreshDragExtent',
     onTap: _showRefreshDialog,
   ),
   const SwitchModel(
@@ -595,19 +592,10 @@ List<SettingsModel> get extraSettings => [
       onTap: _showProxyDialog,
     ),
   ),
-  const SwitchModel(
-    title: '自动清除缓存',
-    subtitle: '每次启动时清除缓存',
-    leading: Icon(Icons.auto_delete_outlined),
-    setKey: SettingBoxKey.autoClearCache,
-    defaultVal: false,
-  ),
   NormalModel(
     title: '最大缓存大小',
-    getSubtitle: () {
-      final num = Pref.maxCacheSize;
-      return '当前最大缓存大小: 「${num == 0 ? '无限' : CacheManager.formatSize(Pref.maxCacheSize)}」';
-    },
+    getSubtitle: () =>
+        '当前最大缓存大小: 「${CacheManager.formatSize(Pref.maxCacheSize)}」',
     leading: const Icon(Icons.delete_outlined),
     onTap: _showCacheDialog,
   ),
@@ -721,48 +709,42 @@ Future<void> audioNormalization(
 void _showDownPathDialog(BuildContext context, VoidCallback setState) {
   showDialog(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => SimpleDialog(
       clipBehavior: Clip.hardEdge,
       contentPadding: const EdgeInsets.symmetric(vertical: 12),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            onTap: () {
-              Get.back();
-              Utils.copyText(downloadPath);
-            },
-            dense: true,
-            title: const Text('复制', style: TextStyle(fontSize: 14)),
-          ),
-          ListTile(
-            onTap: () {
-              Get.back();
-              final defPath = defDownloadPath;
-              if (downloadPath == defPath) return;
-              downloadPath = defPath;
-              setState();
-              Get.find<DownloadService>().initDownloadList();
-              GStorage.setting.delete(SettingBoxKey.downloadPath);
-            },
-            dense: true,
-            title: const Text('重置', style: TextStyle(fontSize: 14)),
-          ),
-          ListTile(
-            onTap: () async {
-              Get.back();
-              final path = await FilePicker.getDirectoryPath();
-              if (path == null || path == downloadPath) return;
-              downloadPath = path;
-              setState();
-              Get.find<DownloadService>().initDownloadList();
-              GStorage.setting.put(SettingBoxKey.downloadPath, path);
-            },
-            dense: true,
-            title: const Text('设置新路径', style: TextStyle(fontSize: 14)),
-          ),
-        ],
-      ),
+      children: [
+        DialogOption(
+          onPressed: () {
+            Get.back();
+            Utils.copyText(downloadPath);
+          },
+          child: const Text('复制', style: TextStyle(fontSize: 14)),
+        ),
+        DialogOption(
+          onPressed: () {
+            Get.back();
+            final defPath = defDownloadPath;
+            if (downloadPath == defPath) return;
+            downloadPath = defPath;
+            setState();
+            Get.find<DownloadService>().initDownloadList();
+            GStorage.setting.delete(SettingBoxKey.downloadPath);
+          },
+          child: const Text('重置', style: TextStyle(fontSize: 14)),
+        ),
+        DialogOption(
+          onPressed: () async {
+            Get.back();
+            final path = await FilePicker.getDirectoryPath();
+            if (path == null || path == downloadPath) return;
+            downloadPath = path;
+            setState();
+            Get.find<DownloadService>().initDownloadList();
+            GStorage.setting.put(SettingBoxKey.downloadPath, path);
+          },
+          child: const Text('设置新路径', style: TextStyle(fontSize: 14)),
+        ),
+      ],
     ),
   );
 }
@@ -928,29 +910,6 @@ void _showTouchSlopDialog(BuildContext context, VoidCallback setState) {
       ],
     ),
   );
-}
-
-Future<void> _showRefreshDragDialog(
-  BuildContext context,
-  VoidCallback setState,
-) async {
-  final res = await showDialog<double>(
-    context: context,
-    builder: (context) => SliderDialog(
-      title: const Text('刷新滑动距离'),
-      min: 0.1,
-      max: 0.5,
-      divisions: 8,
-      precise: 2,
-      value: Pref.refreshDragPercentage,
-      suffix: 'x',
-    ),
-  );
-  if (res != null) {
-    kDragContainerExtentPercentage = res;
-    await GStorage.setting.put(SettingBoxKey.refreshDragPercentage, res);
-    setState();
-  }
 }
 
 Future<void> _showRefreshDialog(

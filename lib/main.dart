@@ -110,8 +110,6 @@ void main() async {
     ..lazyPut(DownloadService.new);
   HttpOverrides.global = _CustomHttpOverrides();
 
-  CacheManager.autoClearCache();
-
   if (PlatformUtils.isMobile) {
     if (Platform.isAndroid) MaxScreenSize.init();
     await Future.wait([
@@ -290,7 +288,7 @@ class MyApp extends StatelessWidget {
         FlutterSmartDialog.observer,
       ],
       scrollBehavior: PlatformUtils.isDesktop
-          ? const CustomScrollBehavior(desktopDragDevices)
+          ? const CustomScrollBehavior()
           : null,
     );
   }

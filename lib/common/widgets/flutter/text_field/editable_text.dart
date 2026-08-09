@@ -25,6 +25,7 @@ import 'package:PiliPlus/common/widgets/flutter/text_field/controller.dart';
 import 'package:PiliPlus/common/widgets/flutter/text_field/editable.dart';
 import 'package:PiliPlus/common/widgets/flutter/text_field/spell_check.dart';
 import 'package:PiliPlus/common/widgets/flutter/text_field/text_selection.dart';
+import 'package:PiliPlus/utils/platform_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart'
@@ -1716,7 +1717,7 @@ class EditableText extends StatefulWidget {
     //   }
     //   return ui.BoxWidthStyle.tight;
     // }
-    return ui.BoxWidthStyle.max;
+    return ui.BoxWidthStyle.tight;
   }
 
   /// The default value for [stylusHandwritingEnabled].
@@ -3556,6 +3557,8 @@ class EditableTextState extends State<EditableText>
     }
   }
 
+  TextRange? _deletedRange;
+
   @override
   void updateEditingValueWithDeltas(List<TextEditingDelta> textEditingDeltas) {
     if (textEditingDeltas.isEmpty) {
@@ -3564,14 +3567,35 @@ class EditableTextState extends State<EditableText>
     }
     TextEditingValue remoteValue = _value;
     for (final TextEditingDelta delta in textEditingDeltas) {
+      if (PlatformUtils.isDesktop) {
+        if (_deletedRange case final range?) {
+          final deleteDelta = TextEditingDeltaDeletion(
+            oldText: remoteValue.text,
+            deletedRange: range,
+            selection: remoteValue.selection,
+            composing: remoteValue.composing,
+          );
+          _deletedRange = null;
+          widget.controller.syncRichText(deleteDelta);
+        } else if (delta is TextEditingDeltaInsertion &&
+            !remoteValue.selection.isCollapsed) {
+          final offset = delta.textInserted.length;
+          _deletedRange = TextRange(
+            start: remoteValue.selection.start + offset,
+            end: remoteValue.selection.end + offset,
+          );
+        }
+      }
       widget.controller.syncRichText(delta);
       remoteValue = delta.apply(remoteValue);
     }
 
+    final plainText = widget.controller.plainText;
+    final composing = textEditingDeltas.last.composing;
     final newValue = TextEditingValue(
-      text: widget.controller.plainText,
+      text: plainText,
       selection: widget.controller.newSelection,
-      composing: textEditingDeltas.last.composing,
+      composing: composing.end <= plainText.length ? composing : .empty,
     );
 
     updateEditingValue(newValue, remoteValue: remoteValue);
@@ -4277,7 +4301,7 @@ class EditableTextState extends State<EditableText>
         return;
       }
       _showToolbarOnScreenScheduled = true;
-      SchedulerBinding.instance.addPostFrameCallback((Duration _) {
+      void scheduleToolbar(Duration _) {
         _showToolbarOnScreenScheduled = false;
         if (!mounted || _dataWhenToolbarShowScheduled == null) {
           return;
@@ -4307,7 +4331,25 @@ class EditableTextState extends State<EditableText>
           showToolbar();
           _dataWhenToolbarShowScheduled = null;
         }
-      }, debugLabel: 'EditableText.scheduleToolbar');
+      }
+
+      switch (SchedulerBinding.instance.schedulerPhase) {
+        case SchedulerPhase.idle:
+        case SchedulerPhase.postFrameCallbacks:
+          // During these scheduler phases we cannot guarantee
+          // there will be a frame after, so we use scheduleFrameCallback.
+          SchedulerBinding.instance.scheduleFrameCallback(scheduleToolbar);
+        case SchedulerPhase.transientCallbacks:
+        case SchedulerPhase.midFrameMicrotasks:
+        case SchedulerPhase.persistentCallbacks:
+          // During an active frame we can still schedule
+          // a post-frame callback to be run after the
+          // current frame.
+          SchedulerBinding.instance.addPostFrameCallback(
+            scheduleToolbar,
+            debugLabel: 'EditableText.scheduleToolbar',
+          );
+      }
     }
   }
 
@@ -4845,6 +4887,7 @@ class EditableTextState extends State<EditableText>
   }
 
   void _handleFocusChanged() {
+    _deletedRange = null;
     _openOrCloseInputConnectionIfNeeded();
     _startOrStopCursorTimerIfNeeded();
     _updateOrDisposeSelectionOverlayIfNeeded();
@@ -5086,9 +5129,11 @@ class EditableTextState extends State<EditableText>
   ) {
     // Compare the current TextEditingValue with the pre-format new
     // TextEditingValue value, in case the formatter would reject the change.
-    final shouldShowCaret = widget.readOnly
-        ? _value.selection != value.selection
-        : _value != value;
+    final shouldShowCaret =
+        cause != .drag &&
+        (widget.readOnly
+            ? _value.selection != value.selection
+            : _value != value);
     if (shouldShowCaret) {
       scheduleShowCaretOnScreen(withAnimation: true);
     }
@@ -5905,7 +5950,7 @@ class EditableTextState extends State<EditableText>
         child: Builder(
           builder: (BuildContext context) {
             return TextFieldTapRegion(
-              groupId: widget.groupId,
+              // groupId: widget.groupId,
               onTapOutside: _hasFocus
                   ? (PointerDownEvent event) => _onTapOutside(context, event)
                   : null,

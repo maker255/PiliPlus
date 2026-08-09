@@ -1,4 +1,5 @@
 import 'package:PiliPlus/common/widgets/reorder_mixin.dart';
+import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
 import 'package:PiliPlus/http/fav.dart';
 import 'package:PiliPlus/http/loading_state.dart';
 import 'package:PiliPlus/models_new/fav/fav_folder/list.dart';
@@ -27,8 +28,7 @@ class _FavFolderSortPageState extends State<FavFolderSortPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
+    return SimpleScaffold(
       appBar: AppBar(
         title: const Text('收藏夹排序'),
         actions: [
@@ -81,7 +81,7 @@ class _FavFolderSortPageState extends State<FavFolderSortPage>
         final key = item.id.toString();
         return SizedBox(
           key: Key(key),
-          height: 98,
+          height: 110,
           child: FavVideoItem(
             heroTag: key,
             item: item,

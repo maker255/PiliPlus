@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/selectable_text.dart';
 import 'package:PiliPlus/models_new/article/article_view/ops.dart';
 import 'package:PiliPlus/pages/dynamics/widgets/vote.dart';
 import 'package:PiliPlus/utils/app_scheme.dart';
@@ -34,10 +33,7 @@ class ArticleOpus extends StatelessWidget {
           final item = _ops[index];
           switch (item.insert) {
             case String e:
-              return SelectableText(
-                e,
-                contextMenuBuilder: siteSearchMenuBuilder(),
-              );
+              return Text(e);
             case Insert(:final card):
               if (card != null) {
                 if (card.url?.isNotEmpty == true) {

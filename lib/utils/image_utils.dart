@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:async' show FutureOr;
 import 'dart:io' show File, Platform;
 import 'dart:math' as math;
 import 'dart:typed_data' show Uint8List;
@@ -167,7 +167,6 @@ abstract final class ImageUtils {
       final result = await Future.wait(futures, eagerError: true);
       bool success = true;
       if (PlatformUtils.isMobile) {
-        final delList = <String>[];
         final saveList = <SaveFileData>[];
         for (final i in result) {
           if (i.statusCode == 200) {
@@ -183,9 +182,6 @@ abstract final class ImageUtils {
           }
         }
         await SaverGallery.saveFiles(saveList, skipIfExists: false);
-        for (final i in delList) {
-          File(i).tryDel();
-        }
       } else {
         for (final res in result) {
           if (res.statusCode == 200) {

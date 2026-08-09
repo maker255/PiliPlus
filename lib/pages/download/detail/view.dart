@@ -4,6 +4,7 @@ import 'package:PiliPlus/common/widgets/appbar/appbar.dart';
 import 'package:PiliPlus/common/widgets/dialog/dialog.dart';
 import 'package:PiliPlus/common/widgets/flutter/pop_scope.dart';
 import 'package:PiliPlus/common/widgets/loading_widget/http_error.dart';
+import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
 import 'package:PiliPlus/common/widgets/view_sliver_safe_area.dart';
 import 'package:PiliPlus/models_new/download/bili_download_entry_info.dart';
 import 'package:PiliPlus/pages/common/multi_select/base.dart'
@@ -36,7 +37,7 @@ class DownloadDetailPage extends StatefulWidget {
 }
 
 class _DownloadDetailPageState extends State<DownloadDetailPage>
-    with BaseMultiSelectMixin<BiliDownloadEntryInfo> {
+    with BaseMultiSelectMixin<BiliDownloadEntryInfo>, GridMixin {
   StreamSubscription? _sub;
   final _downloadItems = RxList<BiliDownloadEntryInfo>();
   final _controller = Get.find<DownloadPageController>();
@@ -93,8 +94,7 @@ class _DownloadDetailPageState extends State<DownloadDetailPage>
             handleSelect();
           }
         },
-        child: Scaffold(
-          resizeToAvoidBottomInset: false,
+        child: SimpleScaffold(
           appBar: MultiSelectAppBarWidget(
             ctr: this,
             actions: [
@@ -149,11 +149,7 @@ class _DownloadDetailPageState extends State<DownloadDetailPage>
                 sliver: Obx(() {
                   if (_downloadItems.isNotEmpty) {
                     return SliverGrid.builder(
-                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                        mainAxisSpacing: 2,
-                        mainAxisExtent: 100,
-                        maxCrossAxisExtent: Grid.smallCardWidth * 2,
-                      ),
+                      gridDelegate: gridDelegate,
                       itemBuilder: (context, index) {
                         final entry = _downloadItems[index];
                         return DetailItem(
