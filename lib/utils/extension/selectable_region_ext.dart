@@ -1,7 +1,8 @@
+import 'package:PiliPlus/utils/extension/get_ext.dart';
 import 'package:PiliPlus/utils/extension/iterable_ext.dart';
 import 'package:PiliPlus/utils/page_utils.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 通用文本选择菜单：在默认项之后插入「站内搜索」/「打开」
 Widget launchMenuBuilder(BuildContext context, SelectableRegionState state) {
@@ -29,14 +30,11 @@ extension SelectableRegionStateExt on SelectableRegionState {
           onPressed: () => onMenuPressed(
             isScheme
                 ? PageUtils.handleWebview
-                : (text) {
-                    final params = {'keyword': text};
-                    if (Get.routing.route is PageRoute) {
-                      Get.toNamed('/searchResult', parameters: params);
-                    } else {
-                      Get.offNamed('/searchResult', parameters: params);
-                    }
-                  },
+                : (text) => Get.offOrToNamed(
+                    '/searchResult',
+                    parameters: {'keyword': text},
+                    off: Get.routing.route is! PageRoute,
+                  ),
           ),
         ),
       );

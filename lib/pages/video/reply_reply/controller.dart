@@ -10,9 +10,9 @@ import 'package:PiliPlus/utils/id_utils.dart';
 import 'package:PiliPlus/utils/storage_pref.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 class VideoReplyReplyController extends ReplyController
@@ -105,8 +105,9 @@ class VideoReplyReplyController extends ReplyController
     if (removedReplies case final removedReplies?) {
       _removedReplies.addAll(removedReplies);
     }
-    mode = Mode.MAIN_LIST_TIME;
     if (isSeedMode) {
+      // seed 子树视图不支持排序，固定按时间
+      mode = Mode.MAIN_LIST_TIME;
       // seed 模式：直接用父面板已加载数据，跳过 DetailList(root=深层评论)（该请求必然返回空）
       loadingState.value = Success(seedReplies);
       isEnd = seedOffset == null;
@@ -114,6 +115,9 @@ class VideoReplyReplyController extends ReplyController
       // 每次数据变化后重算子树计数（增量续拉追加后）
       _seedCountWorker = ever(loadingState, (_) => _refreshSeedCount());
     } else {
+      final cacheSortType = Pref.reply2SortType;
+      sortType.value = cacheSortType;
+      mode = cacheSortType == .time ? Mode.MAIN_LIST_TIME : Mode.MAIN_LIST_HOT;
       queryData();
     }
   }

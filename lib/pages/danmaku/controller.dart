@@ -7,6 +7,7 @@ import 'package:PiliPlus/http/loading_state.dart';
 import 'package:PiliPlus/plugin/pl_player/controller.dart';
 import 'package:PiliPlus/plugin/pl_player/models/data_source.dart';
 import 'package:PiliPlus/utils/accounts.dart';
+import 'package:PiliPlus/utils/danmaku_utils.dart';
 import 'package:PiliPlus/utils/path_utils.dart';
 import 'package:PiliPlus/utils/utils.dart';
 import 'package:path/path.dart' as path;
@@ -29,17 +30,12 @@ class PlDanmakuController {
   // 已请求的段落标记
   late final Set<int> _requestedSeg = HashSet();
 
-  static const int segmentLength = 60 * 6 * 1000;
   // 合并弹幕的时间窗口：相同内容仅在窗口内合并，避免跨时间段误合并
   static const int mergeWindow = 15 * 1000;
 
   void dispose() {
     _dmSegMap.clear();
     _requestedSeg.clear();
-  }
-
-  static int calcSegment(int progress) {
-    return progress ~/ segmentLength;
   }
 
   Future<void> queryDanmaku(int segmentIndex) async {
@@ -68,7 +64,8 @@ class PlDanmakuController {
   void handleDanmaku(List<DanmakuElem> elems) {
     if (elems.isEmpty) return;
     // 按时间窗口分组：窗口 → 文本 → (首条弹幕, 该组出现过的不同用户集合)
-    final windowed = HashMap<int, HashMap<String, (DanmakuElem, Set<String>)>>();
+    final windowed =
+        HashMap<int, HashMap<String, (DanmakuElem, Set<String>)>>();
 
     final filters = _plPlayerController.filters;
     final shouldFilter = filters.count != 0;
@@ -114,7 +111,7 @@ class PlDanmakuController {
     if (_isFileSource) {
       initFileDmIfNeeded();
     } else {
-      final int segmentIndex = calcSegment(progress);
+      final int segmentIndex = DmUtils.calcSegment(progress);
       if (!_requestedSeg.contains(segmentIndex)) {
         queryDanmaku(segmentIndex);
         return null;

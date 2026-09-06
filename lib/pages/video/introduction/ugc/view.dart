@@ -44,11 +44,11 @@ import 'package:PiliPlus/utils/platform_utils.dart';
 import 'package:PiliPlus/utils/request_utils.dart';
 import 'package:PiliPlus/utils/storage_pref.dart';
 import 'package:PiliPlus/utils/utils.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:material_ui/material_ui.dart';
 
 class UgcIntroPanel extends StatefulWidget {
   const UgcIntroPanel({
@@ -920,8 +920,8 @@ class _UgcIntroPanelState extends State<UgcIntroPanel> {
                     if (introController.staffRelations['status'] == true &&
                         introController.staffRelations['${item.mid}'] == null) {
                       return Material(
-                        type: .transparency,
-                        shape: const CircleBorder(),
+                        type: .circle,
+                        color: colorScheme.secondaryContainer,
                         child: InkWell(
                           customBorder: const CircleBorder(),
                           onTap: () => RequestUtils.actionRelationMod(
@@ -932,12 +932,8 @@ class _UgcIntroPanelState extends State<UgcIntroPanel> {
                                 introController.staffRelations['${item.mid}'] =
                                     true,
                           ),
-                          child: Ink(
+                          child: Padding(
                             padding: const .all(2),
-                            decoration: BoxDecoration(
-                              color: colorScheme.secondaryContainer,
-                              shape: .circle,
-                            ),
                             child: Icon(
                               MdiIcons.plus,
                               size: 16,
