@@ -201,6 +201,7 @@ abstract final class SettingBoxKey {
 
   static const String enableShowDanmaku = 'enableShowDanmaku',
       enableShowLiveDanmaku = 'enableShowLiveDanmaku',
+      enableDanmakuMask = 'enableDanmakuMask',
       pipNoDanmaku = 'pipNoDanmaku',
       showVipDanmaku = 'showVipDanmaku',
       mergeDanmaku = 'mergeDanmaku',
