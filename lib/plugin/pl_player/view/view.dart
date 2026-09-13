@@ -1938,9 +1938,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                             size: 20,
                             color: Colors.white,
                           ),
-                          onLongPress:
-                              (Platform.isAndroid || kDebugMode) && !isLive
-                              ? screenshotWebp
+                          onLongPress: !PlatformUtils.isDarwin && !isLive
+                              ? _screenshotWebp
                               : null,
                           onTap: plPlayerController.takeScreenshot,
                         ),
@@ -2142,7 +2141,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     );
   }
 
-  Future<void> screenshotWebp() async {
+  Future<void> _screenshotWebp() async {
     final videoInfo = videoDetailController.data;
     final ids = videoInfo.dash!.video!.availableVideoQualities;
     final video = videoDetailController.findVideoByQa(ids.min);
