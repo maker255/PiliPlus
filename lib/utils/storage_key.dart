@@ -161,7 +161,8 @@ abstract final class SettingBoxKey {
       liveStream = 'liveStream',
       downloadServerUrl = 'downloadServerUrl',
       enableDownloadServer = 'enableDownloadServer',
-      enableDocProvider = 'enableDocProvider';
+      enableDocProvider = 'enableDocProvider',
+      enableEmoteTooltip = 'enableEmoteTooltip';
 
   static const String minimizeOnExit = 'minimizeOnExit',
       windowSize = 'windowSize',
